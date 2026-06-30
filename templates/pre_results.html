@@ -1,0 +1,156 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Simulation Results</title>
+    <style>
+        table { border-collapse: collapse; width: 80%; margin: 20px auto; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f2f2f2; text-align: center; }
+        td { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center">Simulation Results for {{ sawmill_name }} ({{ sawmill_id }})</h1>
+    <p style="text-align:center">Total Days Simulated: {{ total_days }}</p>
+    <p style="text-align:center">Number of Replications: {{ number_of_replications }}</p>
+    <p style="text-align:center">Total number of corresponding logging site: {{loggingsite_number}}</p>
+
+    <h2 style="text-align:center">Sawmill Data</h2>
+    <table>
+        <tr><th colspan="2">General Metrics</th></tr>
+        <tr><td>Trucks Unloaded</td><td>{{ avg_result.Number_of_Trucks_Unloaded.get(sawmill_id, 0.0) }}</td></tr>
+        <tr><td>Truck Avg. Wait Time for Scale-in</td><td>{{ avg_result.avg_wait_time_scalein.get(sawmill_id, 'N/A') }}</td></tr>
+        <tr><td>Truck Avg. Wait Time in Crane</td><td>{{ avg_result.avg_wait_time_crane.get(sawmill_id, 'N/A') }}</td></tr>
+        <tr><td>Trucks Departed</td><td>{{ avg_result.truck_departed.get(sawmill_id, 0.0) }}</td></tr>
+        <tr><td>Breakdown Number</td><td>{{ avg_result.breakdown_number.get(sawmill_id, 0.0) }}</td></tr>
+        <tr><td>Truck Avg. Turn Time</td><td>{{ avg_result.avg_turn_time.get(sawmill_id, 'N/A') }}</td></tr>
+        <tr><td>Trucks Diverted</td><td>{{ avg_result.truck_diverted_from_sawmill.get(sawmill_id, 0.0) }}</td></tr>
+
+        <tr><th colspan="2">Crane 1</th></tr>
+        <tr><td>Truck Processed on opening time schedule</td><td>{{ avg_result.crane1_processed_truck.get(sawmill_id, 0.0) }}</td></tr>
+        <tr><td>Truck Processed on Overtime</td><td>{{ avg_result.crane1_processed_truck_on_overtime.get(sawmill_id, 0.0) }}</td></tr>
+        <tr><td>Utilization</td><td>{{ avg_result.crane1_utilization.get(sawmill_id, 0.0) }}</td></tr>
+
+        <tr><th colspan="2">Crane 2</th></tr>
+        <tr><td>Truck Processed on opening time schedule</td><td>{{ avg_result.crane2_processed_truck.get(sawmill_id, 0.0) }}</td></tr>
+        <tr><td>Truck Processed on Overtime</td><td>{{ avg_result.crane2_processed_truck_on_overtime.get(sawmill_id, 0.0) }}</td></tr>
+        <tr><td>Utilization</td><td>{{ avg_result.crane2_utilization.get(sawmill_id, 0.0) }}</td></tr>
+    </table>
+
+    <p style="text-align:center"><a href="/">Back to Selection</a></p>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulation Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            text-align: center;
+        }
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        img {
+            width: 500px;
+            height: auto;
+            margin: 15px;
+            border: 1px solid #ccc;
+        }
+        .image-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        .image-box {
+            text-align: center;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <p><a href="{{ url_for('index') }}">← Back to Selection</a></p>
+    <button onclick="window.print()">Download the report</button>
+
+    <h1>Simulation Results for {{ sawmill_name }} ({{ sawmill_id }})</h1>
+    <p>Total Days Simulated: {{ total_days }}</p>
+    <p>Number of Replications: {{ number_of_replications }}</p>
+    <p>Total Number of Logging Sites: {{ loggingsite_number }}</p>
+
+    <h2>Sawmill Metrics</h2>
+    <table>
+        <tr><th colspan="3">General Metrics</th></tr>
+        <tr><td>Number of trucks unloaded</td><td>{{ avg_result.Number_of_Trucks_Unloaded.get(sawmill_id, 0.0) }}</td><td></td></tr>
+        <tr><td>Avg. wait time for scale-in</td><td>{{ "%.2f"|format(avg_result.avg_wait_time_scalein.get(sawmill_id, 0.0)) }}</td><td>Minutes</td></tr>
+        <tr><td>Avg. wait time in crane</td><td>{{ "%.2f"|format(avg_result.avg_wait_time_crane.get(sawmill_id, 0.0)) }}</td><td>Minutes</td></tr>
+        <tr><td>Total number of breakdown</td><td>{{ avg_result.breakdown_number.get(sawmill_id, 0.0) }}</td><td></td></tr>
+        <tr><td>Truck Avg. Turn Time</td><td>{{ "%.2f"|format(avg_result.avg_turn_time.get(sawmill_id, 0.0)) }}</td><td>Minutes</td></tr>
+        <tr><td>Trucks Diverted</td><td>{{ avg_result.truck_diverted_from_sawmill.get(sawmill_id, 0.0) }}</td><td></td></tr>
+
+        <tr><th colspan="3">Crane 1</th></tr>
+        <tr><td>Total trucks processed on regular time</td><td>{{ avg_result.crane1_processed_truck.get(sawmill_id, 0.0) }}</td><td></td></tr>
+        <tr><td>Total trucks processed on over time</td><td>{{ avg_result.crane1_processed_truck_on_overtime.get(sawmill_id, 0.0) }}</td><td></td></tr>
+        <tr><td>Crane 1 utilization</td><td>{{ "%.2f"|format(avg_result.crane1_utilization.get(sawmill_id, 0.0) * 100) }}</td><td>%</td></tr>
+
+        <tr><th colspan="3">Crane 2</th></tr>
+        <tr><td>Total trucks processed on regular time</td><td>{{ avg_result.crane2_processed_truck.get(sawmill_id, 0.0) }}</td><td></td></tr>
+        <tr><td>Total trucks processed on over time</td><td>{{ avg_result.crane2_processed_truck_on_overtime.get(sawmill_id, 0.0) }}</td><td></td></tr>
+        <tr><td>Crane 2 utilization</td><td>{{ "%.2f"|format(avg_result.crane2_utilization.get(sawmill_id, 0.0) * 100) }}</td><td>%</td></tr>
+    </table>
+
+
+    <h2>Visual Analysis</h2>
+    <div class="image-grid">
+        <div class="image-box">
+            <img src="{{ url_for('static', filename='plots/' + sawmill_id + '_scale_in_wait.png') }}" alt="Scale in wait">
+            <p>Scale in wait</p>
+        </div>
+        <div class="image-box">
+            <img src="{{ url_for('static', filename='plots/' + sawmill_id + '_crane_wait_time.png') }}" alt="Crane wait time">
+            <p>Crane wait time</p>
+        </div>
+        <div class="image-box">
+            <img src="{{ url_for('static', filename='plots/' + sawmill_id + '_queue_lengths.png') }}" alt="Queue Lengths">
+            <p>Sawmill queue lengths</p>
+        </div>
+        <div class="image-box">
+            <img src="{{ url_for('static', filename='plots/' + sawmill_id + '_crane1_idle.png') }}" alt="Crane1 idle time">
+            <p>Crane1 idle time</p>
+        </div>
+        <div class="image-box">
+            <img src="{{ url_for('static', filename='plots/' + sawmill_id + '_crane1_unload.png') }}" alt="Crane1 unloading time">
+            <p>Crane1 unloading time</p>
+        </div>
+        <div class="image-box">
+            <img src="{{ url_for('static', filename='plots/' + sawmill_id + '_crane2_idle.png') }}" alt="Crane2 idle time">
+            <p>Crane2 idle time</p>
+        </div>
+        <div class="image-box">
+            <img src="{{ url_for('static', filename='plots/' + sawmill_id + '_crane2_unload.png') }}" alt="Crane2 unloading time">
+            <p>Crane2 unloading time</p>
+        </div>
+        <div class="image-box">
+            <img src="{{ url_for('static', filename='plots/' + sawmill_id + '_turn_time.png') }}" alt="Truck turn time">
+            <p>Truck turn time</p>
+        </div>
+    </div>
+    
+    <p><a href="{{ url_for('reset_session') }}">← Back to Selection</a></p>
+
+</body>
+</html>

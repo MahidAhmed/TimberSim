@@ -1,0 +1,22 @@
+To run from ngrok run the following from the cmd
+
+cd C:\path\to\ngrok
+ngrok http 5000
+
+If you add the path to the system variable then you need to authenticate ngrok to your local machine (you will get the authenticate link in the ngrok website)
+then just need to run 
+ngrok http 5000
+
+
+If you reserve a domain from the ngrok(paid version) then
+after the authenticate NGROK to your local machine (you will get the authenticate link in the ngrok website) you need to run the following in 
+your cmd
+"ngrok http --domain=sawmillsimulation.ngrok.app 5000"
+
+
+So the total procedure is:
+1. Install ngrok
+2. Get the exe file path and add this to the path of the 'Environmental Variable'
+3. Run the authenticate link on the cmd that you will get from the ngrok website
+4. Run the application to your local machine (such as from vs code)
+5. Run the website from the cmd by "ngrok http --domain=sawmillsimulation.ngrok.app 5000" or "ngrok http 5000"

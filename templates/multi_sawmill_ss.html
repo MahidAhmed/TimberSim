@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi Sawmill Simulation</title>
+  <style>
+        body {
+                margin: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #eaf4e2;
+                color: #333;
+                line-height: 1.6;
+            }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            height: 70px;
+            padding: 0 40px;
+            gap: 60px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            color: #003366;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333333;
+            font-weight: 500;
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #003366;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background-color: #003366;
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            margin-left: 8px;
+            cursor: help;
+            position: relative;
+        }
+
+        .tooltip-text {
+            position: absolute;
+            background-color: #003366;
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 300px;
+            z-index: 100;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #003366 transparent transparent transparent;
+        }
+
+        .tooltip-icon:hover .tooltip-text {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        input, select {
+            padding: 12px 15px;
+            font-size: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #003366;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
+        }
+
+        button {
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #d00000;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #b30000;
+        }
+
+        .secondary-button {
+            background-color: #f77f00;
+            width: fit-content;
+            padding: 12px 22px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+            font-size: 15px;
+        }
+        
+        .secondary-button:hover {
+            background-color: #e06d00;
+        }
+
+        .sawmill-info {
+            background-color: #f0f7ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #003366;
+        }
+        
+        .sawmill-info h3 {
+            margin-top: 0;
+            color: #003366;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-label {
+            font-weight: 500;
+        }
+        
+        .info-value {
+            color: #0066cc;
+        }
+  </style>
+</head>
+<body>
+
+{% include 'header.html' %}
+
+<div class="container">
+  <h2>Multi Sawmill Simulation</h2>
+  <form method="post" class="show-running-modal">
+    {% if error %}
+      <div style="color: red; margin-bottom: 20px;">{{ error }}</div>
+    {% endif %}
+    <!-- <label for="sawmills">Select Sawmills (Ctrl/Cmd + click for multiple)</label>
+    <select id="sawmills" name="sawmills" multiple size="8" required>
+      {% for s in sawmills %}
+        <option value="{{ s.sawmill_id }}">{{ s.sawmill_name }} ({{ s.sawmill_id }})</option>
+      {% endfor %}
+    </select>
+    <div class="hint">Tip: Hold Ctrl (Windows) or Cmd (Mac) to select more than one.</div> -->
+    <label>Select Sawmills</label>
+    <div class="dual-list" style="display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:center;">
+        <!-- Available -->
+        <div>
+            <div style="font-weight:600; margin-bottom:6px;">Available</div>
+            <select id="sawmills-available" multiple size="10" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px;">
+            {% for s in sawmills %}
+                <option value="{{ s.sawmill_id }}">{{ s.sawmill_name }} ({{ s.sawmill_id }})</option>
+            {% endfor %}
+            </select>
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex; flex-direction:column; gap:10px; justify-content:center;">
+            <button type="button" id="btn-move-right" title="Add" style="padding:8px 12px; border:none; border-radius:6px; background:#d00000; color:#fff; cursor:pointer;">→</button>
+            <button type="button" id="btn-move-left"  title="Remove" style="padding:8px 12px; border:none; border-radius:6px; background:#555; color:#fff; cursor:pointer;">←</button>
+        </div>
+
+        <!-- Selected -->
+        <div>
+            <div style="font-weight:600; margin-bottom:6px;">Selected</div>
+            <!-- IMPORTANT: this select carries the name used by the backend -->
+            <select id="sawmills-selected" name="sawmills" multiple size="10"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px;">
+            <!-- starts empty -->
+            </select>
+        </div>
+    </div>
+
+    <div class="hint" style="color:#555; font-size:13px; margin-top:6px;">
+    Tip: Double-click an item to move it. Hold Ctrl/Cmd to select multiple.
+    </div>
+
+
+    <div class="row">
+      <div class="input-group">
+        <div class="input-label">
+            Unloading Mean Time (min)
+            <div class="tooltip-icon">?
+                <div class="tooltip-text">
+                    Average time required to unload logs from a truck at the sawmill.
+                </div>
+            </div>
+        </div>
+        <input type="number" name="unload_mean_time" step="0.1" min="1" value="{{ default_values.unload_mean_time }}" required>
+      </div>
+      <div class="input-group">
+        <div class="input-label">
+            Scale In Time (min)
+            <div class="tooltip-icon">?
+                <div class="tooltip-text">
+                    Time taken to weigh trucks when entering the sawmill facility.
+                </div>
+            </div>
+        </div>
+        <input type="number" name="scale_in_time" step="0.1" min="1" value="{{ default_values.scale_in_time }}" required>
+      </div>
+      <div class="input-group">
+        <div class="input-label">
+            Scale Out Time (min)
+            <div class="tooltip-icon">?
+                <div class="tooltip-text">
+                    Time taken to weigh trucks when exiting the sawmill facility. 
+                </div>
+            </div>
+        </div>
+        <input type="number" name="scale_out_time" step="0.1" min="1" value="{{ default_values.scale_out_time }}" required>
+      </div>
+      <div class="input-group">
+        <div class="input-label">
+            Truck Waiting Area Capacity (No of trucks)
+            <div class="tooltip-icon">?
+                <div class="tooltip-text">
+                    Maximum number of trucks that can wait in the holding area before processing. 
+                    When full, new trucks must wait outside the facility.
+                </div>
+            </div>
+        </div>
+        <input type="number" name="truck_waiting_area" value="{{ default_values.truck_waiting_area }}" required>
+      </div>
+
+
+    </div>
+
+
+    <div class="input-group">
+        <div class="input-label">
+            Crane capacity
+            <div class="tooltip-icon">?
+                <div class="tooltip-text">
+                    Crane operational status:<br><br>
+                    • 100% Capacity: All cranes active<br>
+                    • 50% Capacity: One crane operational (other temporarily broken)<br>
+                    • 0% Capacity: All cranes temporarily broken
+                </div>
+            </div>
+        </div>
+        <select name="breakdown_type">
+          <option value="none" selected>100% Capacity</option>
+          <option value="one_crane" >50% Capacity</option>
+          <option value="two_crane" >0% Capacity</option>
+        </select>
+    </div>
+    
+    <div class="input-group">
+        <div class="input-label">
+            Simulation days
+            <div class="tooltip-icon">?
+                <div class="tooltip-text">
+                    Duration of the simulation run. Longer periods provide more accurate results 
+                    but take longer to compute. Choose based on your needs.
+                </div>
+            </div>
+        </div>
+        <select name="simulation_days" required>
+          <option value="1" selected>1 day</option>
+          <option value="7" >1 week</option>
+          <option value="30" >1 month</option>
+        </select>
+
+    </div>
+    <div class="input-group">
+        <div class="input-label">
+            Days gap between 2 breakdown
+            <div class="tooltip-icon">?
+                <div class="tooltip-text">
+                    Number of days between the two breakdowns of the crane(s).
+                </div>
+            </div>
+        </div>
+        <input type="number" name="breakdown_gap" step="1" min="1" required value="1">
+    </div>
+
+    <button type="submit">Run Simulation</button>
+  </form>
+</div>
+
+
+
+
+<script>
+  const left  = document.getElementById('sawmills-available');
+  const right = document.getElementById('sawmills-selected');
+  const btnR  = document.getElementById('btn-move-right');
+  const btnL  = document.getElementById('btn-move-left');
+  const formbtn   = document.querySelector('form');
+  const runBtn = document.getElementById('runBtn');
+
+  function moveSelected(from, to) {
+    const moving = Array.from(from.options).filter(o => o.selected);
+    moving.forEach(opt => {
+      // clone so we don't carry "selected" state weirdness
+      const clone = opt.cloneNode(true);
+      clone.selected = false;
+      to.appendChild(clone);
+      from.removeChild(opt);
+    });
+    // Keep the lists alphabetically sorted by label (optional)
+    sortSelect(to);
+    sortSelect(from);
+  }
+
+  function sortSelect(sel) {
+    const opts = Array.from(sel.options).sort((a,b) => a.text.localeCompare(b.text));
+    sel.innerHTML = '';
+    opts.forEach(o => sel.appendChild(o));
+  }
+
+  btnR.addEventListener('click', () => moveSelected(left, right));
+  btnL.addEventListener('click', () => moveSelected(right, left));
+
+  // Double-click to move one
+  left.addEventListener('dblclick', () => moveSelected(left, right));
+  right.addEventListener('dblclick', () => moveSelected(right, left));
+
+  // Ensure everything in the right box is marked selected before submit
+  // (so all chosen sawmills get posted even if user didn’t highlight them)
+  const form = document.querySelector('form');
+  form.addEventListener('submit', () => {
+    Array.from(right.options).forEach(o => o.selected = true);
+  });
+  // Ensure items in the right box are auto-selected and basic validation
+  runBtn.addEventListener('click', (e) => {
+    if (right.options.length === 0) {
+      e.preventDefault();
+      alert('Pick at least one sawmill.');
+      return;
+    }
+    Array.from(right.options).forEach(o => o.selected = true);
+    // no need to call form.submit(); letting the default action proceed is fine
+  });
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+

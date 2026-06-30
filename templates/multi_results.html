@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Multi-Sawmill Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .header { text-align: center; border-bottom: 2px solid #0056b3; padding-bottom: 20px; margin-bottom: 30px; }
+        h1 { color: #003366; margin: 0; }
+        h2 { color: #003366; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-top: 40px; }
+        h3 { color: #003366; margin-top: 0; }
+
+        .section { background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .sawmill-block { background: #fff; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border-left: 5px solid #003366; }
+        
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 20px; }
+        
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; }
+        th { background-color: #f1f3f5; font-weight: 600; color: #333; }
+        td:nth-child(2) { font-weight: bold; }
+
+        .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 15px; margin-top: 20px; }
+        .image-box { text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 6px; background: #fff; }
+        .image-box img { width: 100%; height: auto; object-fit: contain; }
+        .image-box p { margin: 5px 0 0; font-size: 13px; color: #666; font-weight: 500; }
+
+        .footer-actions { text-align: center; margin-top: 50px; padding-bottom: 20px; }
+        .btn { text-decoration: none; background-color: #0056b3; color: white; padding: 12px 25px; border-radius: 5px; font-weight: bold; margin: 0 10px; cursor: pointer; border: none; }
+        .btn:hover { background-color: #003366; }
+        .btn-print { background-color: #5cb85c; }
+        .btn-print:hover { background-color: #4cae4c; }
+        
+        .chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; }
+
+        /* Lightbox styles */
+        .lightbox-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 24px; }
+        .lightbox-backdrop.active { display: flex; }
+        .lightbox-panel { background: #111; max-width: 95vw; max-height: 90vh; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); position: relative; }
+        .lightbox-img { display: block; max-width: 95vw; max-height: 80vh; width: auto; height: auto; margin: 0; }
+        .lightbox-caption { color: #eee; padding: 10px 14px; font: 500 14px/1.4 'Segoe UI', sans-serif; background: #1a1a1a; border-top: 1px solid #222; }
+        .lightbox-close, .lightbox-prev, .lightbox-next { position: absolute; top: 8px; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 18px; padding: 8px 12px; cursor: pointer; border-radius: 8px; backdrop-filter: blur(3px); }
+        .lightbox-close { right: 8px; }
+        .lightbox-prev  { left: 8px; top: 50%; transform: translateY(-50%); }
+        .lightbox-next  { right: 8px; top: 50%; transform: translateY(-50%); }
+
+        @media print {
+            body { background-color: white; }
+            .footer-actions, .navbar, .lightbox-backdrop { display: none !important; }
+            .container { margin: 0; padding: 0; max-width: 100%; }
+            .grid-container { grid-template-columns: 1fr; }
+            .section, .sawmill-block, .image-box { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+            h1, h2 { color: black; }
+        }
+    </style>
+</head>
+
+<div class="lightbox-backdrop" id="lightbox" aria-hidden="true">
+  <div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="Image preview">
+    <button class="lightbox-close" id="lbClose">✕</button>
+    <button class="lightbox-prev"  id="lbPrev">←</button>
+    <button class="lightbox-next"  id="lbNext">→</button>
+    <img id="lbImg" class="lightbox-img" src="" alt="">
+    <div class="lightbox-caption" id="lbCaption"></div>
+  </div>
+</div>
+
+<body>
+
+{% include 'header.html' %}
+
+<div class="footer-actions">
+    <a href="{{ url_for('index') }}" class="btn">← Back to Setup</a>
+    <a onclick="downloadReport()" class="btn btn-print">Download Report (PDF)</a>
+    <form id="savePdfForm" action="{{ url_for('save_results_pdf_client') }}" method="post" style="display:inline;">
+        <input type="hidden" name="html" id="saveHtmlField">
+        <input type="hidden" name="tag" value="{{ sawmill_id }}">
+        <a class="btn" onclick="saveToDashboard()">Save to Dashboard</a>
+    </form>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>Multi-Sawmill Simulation Results</h1>
+        <p>Simulation Days: {{ total_days }} | Replications: {{ number_of_replications }}</p>
+    </div>
+
+    <div class="section">
+        <h3>Simulation Inputs & Parameters</h3>
+        <div class="grid-container">
+            
+            <div>
+                <h4 style="margin-bottom:10px; border-bottom:1px solid #eee;">Global Settings</h4>
+                <table>
+                    <tr><td>Mean Unloading Time</td><td>{{ input_params['unload_mean_time'] }} min</td></tr>
+                    <tr><td>Scale-in Time</td><td>{{ input_params['scale_in_time'] }} min</td></tr>
+                    <tr><td>Scale-out Time</td><td>{{ input_params['scale_out_time'] }} min</td></tr>
+                    <tr><td>Truck Waiting Area</td><td>{{ input_params['truck_waiting_area'] }} trucks</td></tr>
+                    <tr>
+                        <td>Breakdown Type</td>
+                        <td>
+                        {% if input_params['breakdown_type'] == 'none' %}No Breakdown
+                        {% elif input_params['breakdown_type'] == 'one_crane' %}One Crane Breakdown
+                        {% elif input_params['breakdown_type'] == 'two_crane' %}Two Crane Breakdown
+                        {% else %}Unknown{% endif %}
+                        </td>
+                    </tr>
+                    <tr><td>Breakdown Gap</td><td>{{ input_params['breakdown_gap'] }} days</td></tr>
+                </table>
+            </div>
+
+            <div>
+                <h4 style="margin-bottom:10px; border-bottom:1px solid #eee;">Selected Sawmills & Demand Input</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sawmill ID</th>
+                            <th>Name</th>
+                            <th>Softwood Demand</th>
+                            <th>Hardwood Demand</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if sawmill_details %}
+                            {% for sid, details in sawmill_details.items() %}
+                            <tr>
+                                <td>{{ sid }}</td>
+                                <td style="font-weight:normal;">{{ details.name }}</td>
+                                <td style="text-align:left;">{{ details.soft_demand }}</td>
+                                <td style="text-align:left;">{{ details.hard_demand }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="4">No detailed input available.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div>
+            <h4 style="margin-bottom:10px; border-bottom:1px solid #eee; color:#003366;">Active Logging Sites</h4>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Site Name</th>
+                            <th>Assigned Sawmill</th>
+                            <th>Trucks</th>
+                            <th>Capacity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logging-site-table">
+                        {% if logging_sites %}
+                            {% for site in logging_sites %}
+                            <tr>
+                                <td>{{ site['site_id'] }}</td>
+                                <td>{{ site.get('sawmill', 'N/A') }}</td>
+                                <td>{{ site.get('num_trucks', 13) }}</td>
+                                <td>{{ site['initial_log_capacity'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="4">No logging site data found.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Output Variable Definitions</h3>
+        <table>
+            <tr><th>Variable</th><th>Meaning</th></tr>
+            <tr><td>Trucks Unloaded</td><td>Total trucks successfully processed at the sawmill.</td></tr>
+            <tr><td>Avg. Scale-In Wait</td><td>Average time trucks wait for weighing in.</td></tr>
+            <tr><td>Avg. Crane Wait</td><td>Average time trucks wait for crane assignment.</td></tr>
+            <tr><td>Breakdowns</td><td>Number of crane breakdown events.</td></tr>
+            <tr><td>Trucks Diverted</td><td>Number of trucks redirected to alternative sawmills.</td></tr>
+        </table>
+    </div>
+
+    {% for sid, details in sawmill_details.items() %}
+    
+    {% set res = avg_result.get(sid) or avg_result.get(sid|int) %}
+    
+    {% if res %}
+    <div class="sawmill-block">
+        <h2 style="border-bottom: 2px solid #eee;">{{ details.name }} ({{ sid }})</h2>
+        
+        <div class="grid-container">
+            <div>
+                <table>
+                    <tr><th colspan="2">Performance Metrics</th></tr>
+                    <tr><td>Trucks Unloaded</td><td>{{ res.Number_of_Trucks_Unloaded.get(sid, 0.0) }}</td></tr>
+                    <tr><td>Avg. Scale-In Wait</td><td>{{ "%.2f"|format(res.avg_wait_time_scalein.get(sid, 0.0)) }} min</td></tr>
+                    <tr><td>Avg. Crane Wait</td><td>{{ "%.2f"|format(res.avg_wait_time_crane.get(sid, 0.0)) }} min</td></tr>
+                    <tr><td>Avg. Turn Time</td><td>{{ "%.2f"|format(res.avg_turn_time.get(sid, 0.0)) }} min</td></tr>
+                    <tr><td>Breakdowns</td><td>{{ res.breakdown_number.get(sid, 0.0) }}</td></tr>
+                    <tr><td>Trucks Diverted</td><td>{{ res.truck_diverted_from_sawmill.get(sid, 0.0) }}</td></tr>
+                    
+                    <tr><th colspan="2">Crane Utilization</th></tr>
+                    <tr><td>Crane 1</td><td>{{ "%.2f"|format(res.crane1_utilization.get(sid, 0.0) * 100) }}%</td></tr>
+                    <tr><td>Crane 2</td><td>{{ "%.2f"|format(res.crane2_utilization.get(sid, 0.0) * 100) }}%</td></tr>
+                </table>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <h4 style="margin-top:0; color:#555; border-bottom: 1px solid #ddd; width: 100%; text-align: center; padding-bottom: 5px;">Timber Received (Composition)</h4>
+                <div class="chart-container">
+                    <canvas id="chart-{{ sid }}"></canvas>
+                </div>
+                <p style="margin-top: 10px; font-weight: 500; color: #555;">Softwood vs Hardwood (Tons)</p>
+                <script id="data-{{ sid }}" type="application/json">
+                {
+                    "soft": {{ res.softwood_received.get(sid, 0.0) }},
+                    "hard": {{ res.hardwood_received.get(sid, 0.0) }}
+                }
+                </script>
+            </div>
+        </div>
+
+        <h4>Visual Analysis</h4>
+        <div class="image-grid">
+            <div class="image-box">
+                <img src="{{ url_for('static', filename='plots/' + sid + '_queue_len_vs_time.png') }}" alt="Queue Length">
+                <p>Waiting Area Queue</p>
+            </div>
+            <div class="image-box">
+                <img src="{{ url_for('static', filename='plots/' + sid + '_scale_in_wait.png') }}" alt="Scale In Wait">
+                <p>Scale-In Wait Time</p>
+            </div>
+            <div class="image-box">
+                <img src="{{ url_for('static', filename='plots/' + sid + '_crane_wait_time.png') }}" alt="Crane Wait">
+                <p>Crane Wait Time</p>
+            </div>
+            <div class="image-box">
+                <img src="{{ url_for('static', filename='plots/' + sid + '_turn_time.png') }}" alt="Turn Time">
+                <p>Truck Turn Time</p>
+            </div>
+            <div class="image-box">
+                <img src="{{ url_for('static', filename='plots/' + sid + '_crane1_duo.png') }}" alt="Crane 1 Activity">
+                <p>Crane 1 Activity</p>
+            </div>
+            <div class="image-box">
+                <img src="{{ url_for('static', filename='plots/' + sid + '_crane2_duo.png') }}" alt="Crane 2 Activity">
+                <p>Crane 2 Activity</p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="sawmill-block" style="border-left: 5px solid #d00000;">
+        <h3>No results found for Sawmill ID {{ sid }} ({{ details.name }})</h3>
+        <p>This usually means no trucks were successfully processed or simulation data failed to aggregate for this location.</p>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <div class="footer-actions">
+        <a href="{{ url_for('index') }}" class="btn">← Back to Setup</a>
+    </div>
+</div>
+
+<script>
+    Chart.register(ChartDataLabels);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const dataScripts = document.querySelectorAll('script[id^="data-"]');
+
+        dataScripts.forEach(script => {
+            const sid = script.id.replace('data-', '');
+            const data = JSON.parse(script.textContent);
+            const ctx = document.getElementById('chart-' + sid).getContext('2d');
+
+            let vals = [data.soft, data.hard];
+            let labels = ['Softwood', 'Hardwood'];
+            let colors = ['#2ecc71', '#e74c3c'];
+
+            // Empty check
+            if (data.soft === 0 && data.hard === 0) {
+                vals = [1]; labels = ['No Data']; colors = ['#e0e0e0'];
+            }
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{ data: vals, backgroundColor: colors, borderWidth: 1 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 14 },
+                            formatter: (val) => {
+                                if (val === 0 || labels[0] === 'No Data') return '';
+                                return val.toFixed(0) + ' t';
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    });
+
+    function downloadReport() {
+        const originalTitle = document.title;
+        const now = new Date();
+        const filename = `MultiReport_${now.toISOString().slice(0,19).replace(/:/g,"-")}.pdf`;
+        document.title = filename;
+        window.print();
+        setTimeout(() => { document.title = originalTitle; }, 1000);
+    }
+
+    // Lightbox Logic
+    (function () {
+        const backdrop = document.getElementById('lightbox');
+        const imgEl = document.getElementById('lbImg');
+        const captionEl = document.getElementById('lbCaption');
+        const images = Array.from(document.querySelectorAll('.image-grid .image-box img'));
+        let currentIndex = -1;
+
+        function openAt(index) {
+            if (index < 0 || index >= images.length) return;
+            currentIndex = index;
+            const img = images[index];
+            imgEl.src = img.src;
+            imgEl.alt = img.alt;
+            captionEl.textContent = img.closest('.image-box')?.querySelector('p')?.textContent?.trim() || img.alt;
+            backdrop.classList.add('active');
+        }
+
+        document.getElementById('lbClose').onclick = () => backdrop.classList.remove('active');
+        document.getElementById('lbPrev').onclick = () => openAt((currentIndex - 1 + images.length) % images.length);
+        document.getElementById('lbNext').onclick = () => openAt((currentIndex + 1) % images.length);
+        
+        images.forEach((img, idx) => {
+            img.style.cursor = 'zoom-in';
+            img.addEventListener('click', () => openAt(idx));
+        });
+    })();
+</script>
+
+</body>
+</html>

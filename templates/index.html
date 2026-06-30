@@ -1,0 +1,109 @@
+{% include 'header.html' %}
+
+<style>
+  .info-panel {
+    max-width: 1000px;
+    margin: 40px auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    padding: 32px;
+  }
+  .info-panel h1 {
+    margin: 0 0 18px 0;
+    font-size: 28px;
+    color: #0b4d28;
+  }
+  .info-panel p.lead {
+    margin: 0 0 22px 0;
+    color: #365a49;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  .info-card {
+    border: 1px solid #e6efe9;
+    border-radius: 10px;
+    padding: 18px;
+    margin-top: 18px;
+    background: #f8fcfa;
+  }
+  .info-card h2 {
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    color: #003366;
+  }
+  .info-card ul {
+    margin: 0 0 12px 18px;
+    padding: 0;
+  }
+  .info-card li {
+    margin: 6px 0;
+    line-height: 1.45;
+    color: #333;
+  }
+  .info-card .tiny-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 14px;
+    text-decoration: none;
+    color: #0b4d28;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #e7f4eb;
+    transition: background-color .2s;
+  }
+  .info-card .tiny-link:hover { background: #d5efe0; }
+</style>
+
+<main>
+  <aside class="info-panel" aria-label="Simulation Modes Overview">
+    <h1>Choose a Simulation Mode</h1>
+    <p class="lead">
+      Our system includes three simulation modes: <strong>Single Sawmill</strong>, <strong>Multi Sawmill</strong>, and <strong>All Sawmills</strong>.
+      Use these modes to explore scenarios, compare mills, and analyze network-wide performance.
+      You can modify data before running any simulation.
+    </p>
+
+    <!-- Single -->
+    <section class="info-card">
+      <h2>Single Sawmill Simulation</h2>
+      <p>Run this to visualize truck routing for one sawmill and its associated logging sites.</p>
+      <ul>
+        <li>Focus on a single mill and its connected logging sites.</li>
+        <li>Update logging-site data, add new sites, or remove existing ones to see their impact.</li>
+        <li>Adjust sawmill parameters as needed.</li>
+        <li>Handles crane breakdowns by intelligently redirecting trucks to alternative mills.</li>
+        <li>Processes related mills/sites behind the scenes for transfers; results are presented for your selected mill.</li>
+      </ul>
+      <a class="tiny-link" href="{{ url_for('start_one_sawmill') }}">Start Single Sawmill →</a>
+    </section>
+
+    <!-- Multi -->
+    <section class="info-card">
+      <h2>Multi Sawmill Simulation</h2>
+      <p>Run this to compare strategies and interactions across multiple selected mills simultaneously.</p>
+      <ul>
+        <li>Select two or more mills to run concurrently.</li>
+        <li>Edit parameters across the selected mills to compare routing and capacity strategies.</li>
+        <li>View results for all selected mills after the simulation completes.</li>
+      </ul>
+      <a class="tiny-link" href="{{ url_for('multi_sawmill') }}">Start Multi Sawmill →</a>
+    </section>
+
+    <!-- All 59 -->
+    <section class="info-card">
+      <h2>All Sawmills Simulation</h2>
+      <p>Choose this to establish a system-wide baseline or to stress-test all 59 sawmills at once.</p>
+      <ul>
+        <li>Run the entire network to assess throughput, bottlenecks, and inter-mill dependencies.</li>
+        <li>Support for data edits before execution.</li>
+        <li>Captures cross-mill effects such as breakdown-driven truck transfers at scale.</li>
+        <li>Best for strategic planning, parameter sweeps, and network-wide performance baselining.</li>
+      </ul>
+      <a class="tiny-link" href="{{ url_for('all_sawmill') }}">Start All Sawmills Simulation →</a>
+    </section>
+  </aside>
+</main>
+
+
+{% include 'footer.html' %}

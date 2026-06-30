@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Sawmill Simulation{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; }
+        h1, h2, h3 { color: #333; }
+        .container { max-width: 1200px; margin: auto; padding: 20px; background-color: #fff; border-radius: 8px; }
+        .sawmill-section { margin-bottom: 40px; border-top: 1px solid #ccc; padding-top: 20px; }
+        img { max-width: 100%; height: auto; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sawmill Simulation Results</h1>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

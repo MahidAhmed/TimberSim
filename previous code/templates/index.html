@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sawmill Simulation</title>
+</head>
+<body>
+    <h1>Select Sawmill using Sawmill name</h1>
+    <form method="POST">
+        <label for="sawmill">Choose Sawmill:</label>
+        <!-- <select name="sawmill" id="sawmill" required>
+            {% for sm in sawmills %}
+                <option value="{{ sm }}">{{ sm }}</option>
+            {% endfor %}
+        </select> -->
+        <select name="sawmill" id="sawmill" required>
+            {% for _, row in sawmills.iterrows() %}
+                <option value="{{ row['sawmill_id'] }}">{{ row['sawmill_name'] }}</option>
+            {% endfor %}
+        </select>
+        
+
+        <button type="submit">Run Simulation</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Previous Results</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .report-list {
+            list-style: none;
+            padding: 0;
+        }
+        .report-item {
+            background-color: #fff;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: box-shadow 0.3s;
+        }
+        .report-item:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .report-info strong {
+            display: block;
+            font-size: 1.2em;
+            color: #003366;
+        }
+        .report-info span {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .btn-view {
+            text-decoration: none;
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-view:hover {
+            background-color: #4cae4c;
+        }
+        h2 {
+            text-align: center;
+            color: #003366;
+        }
+    </style>
+</head>
+<body>
+    {% include 'header.html' %}
+    <div class="container">
+        <h2>Previous Simulation Reports</h2>
+        {% if report_history %}
+            <ul class="report-list">
+                {% for report in report_history %}
+                <li class="report-item">
+                    <div class="report-info">
+                        <strong>Report for {{ report.sawmill_name }}</strong>
+                        <span>Generated on: {{ report.timestamp }}</span>
+                    </div>
+                    <!-- The loop.index0 gives us the original index of the item -->
+                    <a href="{{ url_for('view_report', report_index=loop.index0) }}" class="btn-view">View Report</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="text-align:center;">You have no previous reports.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

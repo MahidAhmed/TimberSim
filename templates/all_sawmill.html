@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Sawmill Simulation</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eaf4e2; color: #333; line-height: 1.6; }
+        .main-container { display: flex; gap: 30px; padding: 30px; width: 100%; box-sizing: border-box; align-items: flex-start; }
+        .form-container { flex: 1; min-width: 450px; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .map-container { flex: 1.5; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .map-render-area { height: 85vh; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; }
+        .map-render-area iframe { width: 100%; height: 100%; border: none; }
+        h2, h3 { text-align: center; margin-bottom: 30px; color: #003366; font-size: 28px; }
+        .input-group { margin-bottom: 25px; }
+        .input-label { display: flex; align-items: center; margin-bottom: 8px; font-weight: 500; font-size: 16px; }
+        
+        .tooltip-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background-color: #003366; color: white; border-radius: 50%; font-size: 14px; margin-left: 8px; cursor: help; position: relative; }
+        .tooltip-text { position: absolute; background-color: #003366; color: white; padding: 12px; border-radius: 6px; font-size: 14px; width: 300px; z-index: 100; bottom: 30px; left: 50%; transform: translateX(-50%); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-weight: normal; line-height: 1.4; }
+        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #003366 transparent transparent transparent; }
+        .tooltip-icon:hover .tooltip-text { opacity: 1; visibility: visible; }
+        
+        input, select { padding: 12px 15px; font-size: 15px; border-radius: 6px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; background-color: #f9f9f9; transition: border-color 0.3s; }
+        input:focus, select:focus { border-color: #003366; outline: none; box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); }
+        
+        /* Action Buttons */
+        .action-btn { padding: 14px; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 6px; cursor: pointer; transition: background 0.3s ease; width: 100%; margin-top: 10px; display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
+        .btn-run { background-color: #d00000; }
+        .btn-run:hover { background-color: #b30000; }
+        .btn-generate { background-color: #003366; }
+        .btn-generate:hover { background-color: #002244; }
+        .btn-info { background-color: #f77f00; margin-bottom: 20px; }
+        .btn-info:hover { background-color: #e06d00; }
+        
+        /* Modal Styles */
+        .modal-overlay { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 1000px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-modal:hover { color: black; }
+        .modal-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        .modal-table th, .modal-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .modal-table th { background-color: #003366; color: white; }
+        .modal-table tr:nth-child(even){background-color: #f2f2f2;}
+
+        @media (max-width: 1200px) { .main-container { flex-direction: column-reverse; padding: 15px; gap: 20px; } .map-container, .form-container { flex: 1 1 100%; width: 100%; box-sizing: border-box; } .map-render-area { height: 50vh; } .form-container { padding: 25px; } }
+    </style>
+</head>
+<body>
+
+{% include 'header.html' %}
+
+<script id="sawmill-data-holder" type="application/json">
+    {{ sawmills_list | tojson | safe }}
+</script>
+
+<div class="main-container">
+    <div class="form-container">
+        <h2>All Sawmill Simulation</h2>
+        
+        <form method="POST" class="show-running-modal" id="simulation-form">
+            
+            <input type="hidden" name="ls_source" id="ls_source" value="database">
+
+            <div id="setup-section">
+                <div style="background-color: #f0f4f8; padding: 20px; border-radius: 8px; border: 1px solid #cce5ff; margin-bottom: 30px;">
+                    <h4 style="margin-top:0; color:#003366; border-bottom:1px solid #d6d8db; padding-bottom:10px;">
+                        Logging Site Generator
+                    </h4>
+                    <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
+                        Generates sites for <strong>ALL</strong> sawmills proportional to their capacity.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="font-weight:500; font-size:14px; display:flex;">Total Sites <div class="tooltip-icon">?<div class="tooltip-text">Total sites to distribute across all sawmills.</div></div></label>
+                            <input type="number" id="gen_total_sites" value="500" min="1" style="margin-top:5px;">
+                        </div>
+                        <div>
+                            <label style="font-weight:500; font-size:14px; display:flex;">Softwood Ratio (%) <div class="tooltip-icon">?<div class="tooltip-text">For Mixed mills only. Strict mills override this.</div></div></label>
+                            <input type="number" id="gen_ratio" value="50" min="0" max="100" style="margin-top:5px;">
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <label style="font-weight:500; font-size:14px; display:flex;">Max Real Travel Time <div class="tooltip-icon">?<div class="tooltip-text">Limits straight-line generation mathematically.</div></div></label>
+                            <input type="number" id="gen_time" value="90" min="10" style="margin-top:5px;">
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-generate" class="action-btn btn-generate" onclick="generateAllSites()">Generate Sites</button>
+                    <div id="gen-status" style="margin-top: 10px; font-weight: bold; color: green; display: none; font-size: 14px;"></div>
+                </div>
+            </div>
+
+            <div id="simulation-section" style="display: none;">
+                <h3 style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #eee;">Simulation Parameters</h3>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        Unloading Mean Time (min)
+                        <div class="tooltip-icon">?<div class="tooltip-text">Average time it takes a crane to unload a truck at the sawmill.</div></div>
+                    </div>
+                    <input type="number" name="unload_mean_time" step="0.1" min="1" value="{{ default_values.unload_mean_time }}" required>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        Scale In Time (min)
+                        <div class="tooltip-icon">?<div class="tooltip-text">Time taken to weigh and process trucks entering the facility.</div></div>
+                    </div>
+                    <input type="number" name="scale_in_time" step="0.1" min="1" value="{{ default_values.scale_in_time }}" required>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        Scale Out Time (min)
+                        <div class="tooltip-icon">?<div class="tooltip-text">Time taken to weigh and process trucks exiting the facility.</div></div>
+                    </div>
+                    <input type="number" name="scale_out_time" step="0.1" min="1" value="{{ default_values.scale_out_time }}" required>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        Truck Waiting Area Capacity
+                        <div class="tooltip-icon">?<div class="tooltip-text">Maximum number of trucks that can queue inside the sawmill before it reaches capacity.</div></div>
+                    </div>
+                    <input type="number" name="truck_waiting_area" value="{{ default_values.truck_waiting_area }}" required>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        Crane capacity
+                        <div class="tooltip-icon">?<div class="tooltip-text">Simulate crane operations (100% = normal, 50% = 1 crane broken, 0% = both broken).</div></div>
+                    </div>
+                    <select name="breakdown_type">
+                        <option value="none" selected>100% Capacity</option>
+                        <option value="one_crane">50% Capacity</option>
+                        <option value="two_crane">0% Capacity</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        Days gap between breakdown
+                        <div class="tooltip-icon">?<div class="tooltip-text">How often (in days) the crane breakdown scenario occurs.</div></div>
+                    </div>
+                    <input type="number" name="breakdown_gap" step="1" min="1" required value="1">
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">
+                        Simulation days
+                        <div class="tooltip-icon">?<div class="tooltip-text">The total duration the simulation will run.</div></div>
+                    </div>
+                    <select name="simulation_days" required>
+                        <option type="number" value="1" selected>1 day</option>
+                        <option type="number" value="7">1 Week</option>
+                        <option type="number" value="30">1 Month</option>
+                    </select>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #ccc; margin: 30px 0;">
+
+                <button type="button" class="action-btn btn-info" onclick="showGeneratedInfo()">Logging Sites Info</button>
+                <button type="submit" class="action-btn btn-run">Run Simulation</button>
+            </div>
+            
+        </form>
+    </div>
+
+    <div class="map-container">
+        <h3>All Sawmill Locations</h3>
+        <div class="map-render-area">
+            {{ map_html | safe }}
+        </div>
+    </div>
+</div>
+
+<div id="genModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h3 style="color: #003366; border-bottom: 2px solid #eee; padding-bottom: 10px;">Generated Logging Sites</h3>
+        <div style="max-height: 60vh; overflow-y: auto;">
+            <table class="modal-table">
+                <thead>
+                    <tr>
+                        <th>Site ID</th>
+                        <th>Assigned Sawmill</th>
+                        <th>Lat</th>
+                        <th>Lng</th>
+                        <th>Species</th>
+                        <th>Travel (min)</th>
+                        <th>Softwood (t)</th>
+                        <th>Hardwood (t)</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-table-body">
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 15px; text-align: right;">
+            <button type="button" onclick="closeModal()" style="width: auto; padding: 10px 20px; background-color: #6c757d; margin-top:0; border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer;">Close</button>
+        </div>
+    </div>
+</div>
+    
+<script>
+    // --- GLOBAL DATA STORE ---
+    let globalGeneratedSites = [];
+
+    // --- GENERATOR LOGIC ---
+    function generateAllSites() {
+        // 1. Get ALL Sawmill IDs from hidden JSON
+        const sawmillData = JSON.parse(document.getElementById('sawmill-data-holder').textContent || '[]');
+        const allIds = sawmillData.map(s => s.sawmill_id);
+
+        if (allIds.length === 0) {
+            alert("No sawmills found in database.");
+            return;
+        }
+
+        const totalSites = document.getElementById('gen_total_sites').value;
+        const ratio = document.getElementById('gen_ratio').value;
+        const time = document.getElementById('gen_time').value;
+
+        const btn = document.getElementById('btn-generate');
+        const statusDiv = document.getElementById('gen-status');
+        
+        btn.disabled = true;
+        btn.innerText = "Generating Sites...";
+        statusDiv.style.display = 'none';
+
+        // Reuse the multi-site generator endpoint
+        fetch('/generate_multi_sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sawmill_ids: allIds, // Send ALL IDs
+                total_sites: totalSites,
+                softwood_ratio: ratio,
+                max_travel_time: time
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                globalGeneratedSites = data.sites; 
+                
+                // Toggle Views
+                document.getElementById('setup-section').style.display = 'none';
+                document.getElementById('simulation-section').style.display = 'block';
+                
+                // KEY FIX: Change hidden input to tell Python to use the generated sites!
+                document.getElementById('ls_source').value = 'generated';
+                
+                alert(data.message);
+            } else {
+                alert("Error: " + (data.error || "Unknown Error"));
+                btn.disabled = false;
+                btn.innerText = "Generate Sites";
+            }
+        })
+        .catch(err => {
+            alert("Server Error: " + err);
+            btn.disabled = false;
+            btn.innerText = "Generate Sites";
+        });
+    }
+
+    // --- MODAL LOGIC ---
+    function showGeneratedInfo() {
+        const tbody = document.getElementById('modal-table-body');
+        tbody.innerHTML = ''; 
+
+        if (!globalGeneratedSites || globalGeneratedSites.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No sites generated yet.</td></tr>';
+        } else {
+            // Limit display to first 500 to prevent browser lag
+            const displaySites = globalGeneratedSites.slice(0, 500); 
+            
+            displaySites.forEach(site => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${site.site_id}</td>
+                    <td>${site.sawmill_name || site.sawmill}</td>
+                    <td>${site.lat}</td>
+                    <td>${site.lng}</td>
+                    <td style="text-transform: capitalize;">${site.species}</td>
+                    <td>${site.travel_time}</td>
+                    <td>${site.softwood_amount}</td>
+                    <td>${site.hardwood_amount}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            if (globalGeneratedSites.length > 500) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="8" style="text-align:center; font-style:italic;">... and ${globalGeneratedSites.length - 500} more sites (showing first 500) ...</td>`;
+                tbody.appendChild(row);
+            }
+        }
+        document.getElementById('genModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('genModal').style.display = 'none';
+    }
+    
+    // Close modal on outside click
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('genModal')) {
+            closeModal();
+        }
+    }
+
+    // Tooltip Logic
+    document.querySelectorAll('.tooltip-icon').forEach(icon => {
+        icon.addEventListener('mouseenter', function() {
+            this.querySelector('.tooltip-text').style.opacity = "1";
+            this.querySelector('.tooltip-text').style.visibility = "visible";
+        });
+        
+        icon.addEventListener('mouseleave', function() {
+            this.querySelector('.tooltip-text').style.opacity = "0";
+            this.querySelector('.tooltip-text').style.visibility = "hidden";
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sawmill Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #eaf4e2;
+        }
+
+        .body-login {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        /* Push the form down so it doesn't sit under the fixed navbar */
+        .auth-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .auth-container h1 {
+            color: #003366;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #003366;
+        }
+        .message {
+            margin-top: 20px;
+            color: #d9534f;
+        }
+        .auth-link {
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        .auth-link a {
+            color: #0056b3;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between; /* Pushes left and right content to the edges */
+            align-items: center;
+            height: 70px;
+            padding: 0 40px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* A new container for the left-side items */
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 60px; /* Space between logo and the nav links block */
+        }
+
+        .logo {
+            color: #003366;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px; /* Space between individual nav links */
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: #eaf4e2;
+            color: #003366;
+        }
+
+        /* Container for the right-side user info */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Space between greeting and logout button */
+        }
+
+        .user-greeting {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .logout-link {
+            text-decoration: none;
+            background-color: #d9534f;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .logout-link:hover {
+            background-color: #c9302c;
+        }
+        .main-content {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 120px;
+        }
+
+        .sim-button {
+            padding: 20px 40px;
+            background: linear-gradient(135deg, #4B0082, #6A5ACD);
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.3s ease;
+        }
+
+        .sim-button:hover {
+            background: linear-gradient(135deg, rgb(41, 165, 41), rgb(143, 232, 9));
+        }
+        
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="logo">TimberSim</div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('about_simulation') }}">About</a>
+        <a href="#">Contact</a>
+    </div>
+
+    <div class="user-info">
+        {% if session.username %}
+            <span class="user-greeting">Hi, {{ session.username }}</span>
+            <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+        {% endif %}
+    </div>
+</div> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sawmill Simulation</title>
+  <style>
+    /* Page backgrounds */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fff;
+    }
+    .body-login {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f7f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh; /* use min-height so navbar can still show */
+    }
+
+    /* Auth card (used on login/register screens) */
+    .auth-container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .auth-container h1 { color: #003366; margin-bottom: 20px; }
+    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+    .form-group input {
+      width: 100%; padding: 10px; border: 1px solid #ccc;
+      border-radius: 4px; box-sizing: border-box;
+    }
+    .btn {
+      width: 100%; padding: 12px; background-color: #0056b3; color: white;
+      border: none; border-radius: 5px; font-size: 16px; font-weight: bold;
+      cursor: pointer; transition: background-color 0.3s;
+    }
+    .btn:hover { background-color: #003366; }
+    .message { margin-top: 20px; color: #d9534f; }
+    .auth-link { margin-top: 20px; font-size: 0.9em; }
+    .auth-link a { color: #0056b3; text-decoration: none; font-weight: 600; }
+
+    /* Navbar */
+    /* Page background: light green */
+
+    /* Navbar: use CSS Grid so center stays perfectly centered */
+    .navbar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr; /* left / center / right */
+      align-items: center;
+      height: 70px;
+      padding: 0 40px;
+      background-color: #cfead9; /* light green bar */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: sticky; top: 0; z-index: 1000;
+    }
+
+    /* Center the nav links block */
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      justify-self: center;   /* centers this block in the middle column */
+    }
+
+    /* Keep right-side items flushed right */
+    .user-info { display: flex; align-items: center; gap: 20px; justify-self: end; }
+
+    /* Optional: link colors that fit the palette */
+    .nav-links a {
+      text-decoration: none;
+      color: #0b4d28;         /* dark green text */
+      font-weight: 500;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      transition: background-color .2s, color .2s;
+    }
+    .nav-links a:hover { background:#e7f4eb; color:#075a2b; }
+
+    .nav-left { display: flex; align-items: center; gap: 60px; }
+    .logo { color: #003366; font-size: 28px; font-weight: bold; }
+    .nav-links { display: flex; gap: 30px; }
+    .nav-links a {
+      text-decoration: none; color: #333; font-weight: 500; font-size: 16px;
+      padding: 8px 16px; border-radius: 4px; transition: background-color 0.3s, color 0.3s;
+    }
+    .nav-links a:hover { background-color: #eaf4e2; color: #68a7e6; }
+
+    /* Right side */
+    .user-info { display: flex; align-items: center; gap: 20px; }
+    .user-greeting { font-weight: 600; color: #555; }
+    .logout-link {
+      text-decoration: none; background-color: #d9534f; color: white;
+      padding: 8px 15px; border-radius: 5px; font-weight: bold; transition: background-color 0.3s;
+    }
+    .logout-link:hover { background-color: #c9302c; }
+
+    /* Buttons shown on index */
+    .main-content {
+      display: flex; justify-content: center; gap: 60px; margin-top: 120px;
+    }
+    .sim-button {
+      padding: 20px 40px; background: linear-gradient(135deg, #4B0082, #6A5ACD);
+      border: none; font-size: 16px; cursor: pointer; text-decoration: none; color: white;
+      border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.3s ease;
+    }
+    .sim-button:hover { background: linear-gradient(135deg, rgb(41, 165, 41), rgb(143, 232, 9)); }
+
+    /* ===== Shared "Running..." modal ===== */
+    #running-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,.45);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    #running-card {
+      background: #fff; padding: 28px 24px; max-width: 520px; width: 92%;
+      border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.2); text-align: center;
+      font-family: Segoe UI, system-ui, -apple-system, Arial, sans-serif;
+    }
+    .spin {
+      margin: 0 auto 14px; width: 44px; height: 44px; border-radius: 50%;
+      border: 4px solid #e6ecf0; border-top-color: #d00000; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #running-title { font-size: 20px; margin: 6px 0 8px; color:#003366; }
+    #running-note { color:#333; line-height: 1.4; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  {% set home_url = url_for('index') if 'username' in session else url_for('home') %}
+
+<div class="navbar">
+  <!-- Left: brand -->
+  <a href="{{ home_url }}" class="brand" aria-label="TimberSim Home">
+    <span class="logo">TimberSim</span>
+  </a>
+
+  <!-- Center: nav links -->
+  <nav class="nav-links" aria-label="Primary">
+    <a href="{{ home_url }}">Home</a>
+    <a href="{{ url_for('about_simulation') }}">About</a>
+    <a href="{{url_for('contact')}}">Contact</a>
+    <a href="{{url_for('results_dashboard')}}">Dashboard</a>
+  </nav>
+
+  <!-- Right: user area -->
+  <div class="user-info">
+    {% if session.username %}
+      <span class="user-greeting">Hi, {{ session.username }}</span>
+      <a href="{{ url_for('logout') }}" class="logout-link">Logout</a>
+    {% endif %}
+  </div>
+</div>
+
+
+  <!-- RUNNING MODAL (shared for all pages) -->
+  <div id="running-modal" aria-hidden="true">
+    <div id="running-card" role="alertdialog" aria-live="assertive">
+      <div class="spin" aria-hidden="true"></div>
+      <div id="running-title">The simulation is running…
+        Don't close this page!
+      </div>
+      <div id="running-note">
+        It can take a bit. Please take a cup of coffee ☕ and think about the next simulation scenarios.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Show the "running" modal whenever a form with class="show-running-modal" is submitted.
+    (function () {
+      const modal = document.getElementById('running-modal');
+
+      function showModal() {
+        modal.style.display = 'flex';
+        // Prevent interactions with the page underneath
+        document.body.style.pointerEvents = 'none';
+        modal.style.pointerEvents = 'auto';
+      }
+
+      function wireUpForms() {
+        document.querySelectorAll('form.show-running-modal').forEach(form => {
+          if (form.__wired) return;
+          form.__wired = true;
+
+          form.addEventListener('submit', () => {
+            // disable submit controls to prevent double-submit
+            form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(b => {
+              b.disabled = true; b.style.opacity = '0.7'; b.style.cursor = 'not-allowed';
+            });
+            showModal();
+          });
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', wireUpForms);
+      // If you dynamically add forms later, call wireUpForms() again.
+      window.TimberSimWireRunningModal = wireUpForms; // optional: expose for reuse
+    })();
+  </script>

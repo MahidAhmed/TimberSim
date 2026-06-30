@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logging Sites Info</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #eaf4e2; }
+        .navbar { display: flex; align-items: center; height: 70px; padding: 0 40px; gap: 60px; }
+        .logo { color: #003366; font-size: 28px; font-weight: bold; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { text-decoration: none; color: #333; font-weight: 500; font-size: 16px; padding: 8px 16px; border-radius: 4px; transition: background-color 0.3s; }
+        .nav-links a:hover { background-color: #e0e0e0; }
+        h2 { text-align: center; background-color: #ccc; color: red; padding: 10px; margin-top: 30px; }
+        
+        table { width: 98%; margin: 20px auto; border-collapse: collapse; font-size: 13px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: center; }
+        th { background-color: #003366; color: white; }
+        
+        input { border: 1px solid #ccc; padding: 4px; border-radius: 4px; width: 100%; box-sizing: border-box; text-align: center; font-size: 13px; }
+        input[readonly] { background-color: #eee; color: #666; cursor: not-allowed; border: 1px solid #ddd; }
+        
+        /* Specific widths for better layout */
+        td input[name="site_id"] { width: 90px; font-weight: bold; }
+        td input[name="lat"], td input[name="lng"] { width: 80px; }
+        td input[type="number"] { width: 65px; }
+        td input[type="time"] { width: 80px; }
+
+        .delete-btn { color: white; background-color: #d9534f; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 3px; }
+        .delete-btn:hover { background-color: #c9302c; }
+        
+        .update-btn { color: white; background-color: #5bc0de; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .update-btn:hover { background-color: #31b0d5; }
+
+        .add-btn, .return-btn { background-color: #d00000; color: white; padding: 12px 24px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; margin: 20px auto; display: block; font-size: 16px; transition: background 0.3s; }
+        .add-btn:hover, .return-btn:hover { background-color: #b30000; }
+        
+        /* Popup Styles */
+        .popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; width: 450px; z-index: 1000; }
+        .popup input { width: 100%; margin: 5px 0 15px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .popup label { font-weight: bold; display: block; margin-top: 5px; color: #333; }
+        .popup h3 { text-align: center; color: #003366; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        .popup .close-btn { background-color: #6c757d; margin-top: 10px; width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
+        .popup .close-btn:hover { background-color: #5a6268; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+    </style>
+</head>
+<body>
+
+{% include 'header.html' %}
+
+<h2>Logging Sites Information for {{ sawmill_name }} Sawmill</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Site Name</th>
+            <th>Lat</th>
+            <th>Lng</th>
+            <th>Species</th>
+            <th>Type</th>
+            <th>Load Time</th>
+            <th>Travel (min)</th>
+            <th>Open</th>
+            <th>Close</th>
+            <th>Trucks</th>
+            <th>Capacity</th>
+            <th>Hardwood</th>
+            <th>Softwood</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody id="logging-site-table">
+        {% for site in logging_sites %}
+        <tr data-company-id="{{ site.get('company_id', '') }}">
+            <td><input type="text" name="site_id" value="{{ site['site_id'] }}" readonly></td>
+            
+            <td><input type="number" step="any" name="lat" value="{{ site.get('lat', '') }}"></td>
+            <td><input type="number" step="any" name="lng" value="{{ site.get('lng', '') }}"></td>
+            
+            <td><input type="text" name="species" value="{{ site.get('species', sawmill_species)|capitalize }}" readonly></td>
+            <td><input type="text" name="type" value="{{ site.get('type', logging_site_type) }}" readonly></td>
+            <td><input type="number" step="0.1" name="avg_loading_time" value="{{ site['avg_loading_time'] }}"></td>
+            <td><input type="number" step="0.1" name="travel_time" value="{{ site.get('travel_time', 0)|round(1) }}" style="background-color: #f0f0f0;"></td>
+            <td><input type="time" name="opening_time" value="{{ site['opening_time']|minute_to_time }}"></td>
+            <td><input type="time" name="closing_time" value="{{ site['closing_time']|minute_to_time }}"></td>
+            <td><input type="number" name="num_trucks" value="{{ site.get('num_trucks', 0) }}" readonly></td>
+            <td><input type="number" name="initial_log_capacity" min="10000" value="{{ site['initial_log_capacity'] }}"></td>
+            <td><input type="number" name="hardwood_amount" min="0" value="{{ site.get('hardwood_amount', 0) }}"></td>
+            <td><input type="number" name="softwood_amount" min="0" value="{{ site.get('softwood_amount', 0) }}"></td>
+            
+            <td>
+                <button type="button" class="delete-btn" data-site-id="{{ site['site_id'] }}">Del</button>
+                <button type="button" class="update-btn">Update</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<button class="add-btn" onclick="showPopup()">Add New Logging Site</button>
+<button class="return-btn" id="save-and-return-btn">Save & Return to Simulation</button>
+
+<div class="overlay" id="overlay" onclick="hidePopup()"></div>
+<div class="popup" id="popup">
+    <h3>Add Logging Site</h3>
+    <form id="add-form">
+        <label>Site Name</label>
+        <input type="text" name="site_id" required placeholder="e.g. LS_NEW_1">
+        
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1">
+                <label>Latitude</label>
+                <input type="number" step="any" name="lat" placeholder="e.g. 31.327">
+            </div>
+            <div style="flex:1">
+                <label>Longitude</label>
+                <input type="number" step="any" name="lng" placeholder="e.g. -89.290">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1">
+                <label>Species (Fixed)</label>
+                <input type="text" name="species" value="{{ sawmill_species }}" readonly style="background-color: #e9ecef;">
+            </div>
+            <div style="flex:1">
+                <label>Type (Fixed)</label>
+                <input type="text" name="type" value="{{ logging_site_type }}" readonly style="background-color: #e9ecef;">
+            </div>
+        </div>
+
+        <label>Travel Time to Sawmill (min)</label>
+        <input type="number" step="0.1" min="10" name="travel_time_to_sawmill" required placeholder="e.g. 45.5">
+        
+        <label>Mean Loading Time (minutes)</label>
+        <input type="number" step="0.1" min="1" name="avg_loading_time" value="15.0" required>
+        
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1">
+                <label>Opening Time</label>
+                <input type="time" name="opening_time" value="06:00">
+            </div>
+            <div style="flex:1">
+                <label>Closing Time</label>
+                <input type="time" name="closing_time" value="16:00">
+            </div>
+        </div>
+        
+        <label>Total Log Capacity (tons)</label>
+        <input type="number" name="initial_log_capacity" min="1000" value="10000" required>
+        
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1">
+                <label>Hardwood (tons)</label>
+                <input type="number" name="hardwood_amount" min="0" value="0">
+            </div>
+            <div style="flex:1">
+                <label>Softwood (tons)</label>
+                <input type="number" name="softwood_amount" min="0" value="0">
+            </div>
+        </div>
+
+        <input type="hidden" name="sawmill_id" value="{{ sawmill_id }}">
+        
+        <button type="submit" class="add-btn" style="margin-top: 15px;">Add Site</button>
+        <button type="button" class="close-btn" onclick="hidePopup()">Cancel</button>
+    </form>
+</div>
+
+<script>
+    function showPopup() { 
+        document.getElementById('popup').style.display = 'block'; 
+        document.getElementById('overlay').style.display = 'block'; 
+    }
+    function hidePopup() { 
+        document.getElementById('popup').style.display = 'none'; 
+        document.getElementById('overlay').style.display = 'none'; 
+    }
+    function convertToMinutes(timeStr) {
+        if (!timeStr) return 0;
+        const [h, m] = timeStr.split(":").map(Number);
+        return h * 60 + m;
+    }
+
+    // Delete Button Logic - Removes row from the table
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const row = this.closest('tr');
+            const siteId = row.querySelector('input[name="site_id"]').value;
+            if(confirm(`Are you sure you want to delete "${siteId}"?`)) {
+                row.remove(); // Removes from UI. Will be permanently deleted on 'Save & Return'
+            }
+        });
+    });
+
+    // Update Button Logic - Visual Indicator
+    document.querySelectorAll('.update-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const row = this.closest('tr');
+            row.style.backgroundColor = "#e6fffa";
+            setTimeout(() => { row.style.backgroundColor = ""; }, 500);
+            alert("Row marked for update. Make your changes and click 'Save & Return' to apply.");
+        });
+    });
+
+    // Add Site Form Submit
+    document.getElementById('add-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const data = {};
+        fd.forEach((value, key) => { data[key] = value });
+        
+        if(parseFloat(data.avg_loading_time) < 1) { alert("Loading time must be >= 1 min"); return; }
+        if(parseFloat(data.travel_time_to_sawmill) < 1) { alert("Travel time must be positive"); return; }
+
+        fetch('/add_logging_site', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        }).then(res => res.json()).then(res => {
+            if(res.error) {
+                alert(res.error);
+            } else {
+                alert(res.message);
+                window.location.reload(); 
+            }
+        }).catch(err => alert("Server Error: " + err));
+    });
+
+    // Save & Return Logic (Upgraded to map by name instead of index)
+    document.getElementById('save-and-return-btn').addEventListener('click', function() {
+        const rows = document.querySelectorAll('#logging-site-table tr');
+        const updatedSites = [];
+
+        // Loop through remaining rows (deleted rows are ignored)
+        rows.forEach(row => {
+            // Safely fetch inputs by their name attribute
+            updatedSites.push({
+                site_id: row.querySelector('input[name="site_id"]').value,
+                lat: parseFloat(row.querySelector('input[name="lat"]').value) || null,
+                lng: parseFloat(row.querySelector('input[name="lng"]').value) || null,
+                species: row.querySelector('input[name="species"]').value.toLowerCase(),
+                type: row.querySelector('input[name="type"]').value,
+                avg_loading_time: parseFloat(row.querySelector('input[name="avg_loading_time"]').value) || 0,
+                travel_time: parseFloat(row.querySelector('input[name="travel_time"]').value) || 0,
+                opening_time: convertToMinutes(row.querySelector('input[name="opening_time"]').value),
+                closing_time: convertToMinutes(row.querySelector('input[name="closing_time"]').value),
+                num_trucks: parseInt(row.querySelector('input[name="num_trucks"]').value) || 0,
+                initial_log_capacity: parseInt(row.querySelector('input[name="initial_log_capacity"]').value) || 0,
+                hardwood_amount: parseInt(row.querySelector('input[name="hardwood_amount"]').value) || 0,
+                softwood_amount: parseInt(row.querySelector('input[name="softwood_amount"]').value) || 0,
+                company_id: row.dataset.companyId || (row.querySelector('input[name="site_id"]').value + "_CO"),
+                sawmill: "{{ sawmill_id }}"
+            });
+        });
+
+        // Send all data to backend to update session/db
+        fetch('/update_all_logging_sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sawmill_id: "{{ sawmill_id }}", logging_sites: updatedSites })
+        }).then(res => res.json()).then(res => {
+            if(res.status === 'success') {
+                alert("Sites saved successfully!");
+                // Redirect back to simulation page
+                window.location.href = `/one_sawmill?sawmill_id={{ sawmill_id }}&show_form=true`;
+            } else {
+                alert("Error saving data: " + res.error);
+            }
+        }).catch(err => console.error(err));
+    });
+</script>
+
+</body>
+</html>

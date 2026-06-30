@@ -1,0 +1,307 @@
+{% set brand_logo = url_for('static', filename='logo1.png') %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberSim</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* ===== Base ===== */
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;   /* this makes main expand and pushes footer down */
+    }
+    a { color: #2563eb; text-decoration: none; }
+
+    /* ===== Header is provided by header.html ===== */
+    .navbar { position: sticky; top: 0; z-index: 1000; }
+
+    /* ===== Hero ===== */
+    .hero { padding: 28px 22px; background: #fff; }
+    .hero-grid {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: grid;
+      gap: 26px;
+    }
+    .hero-grid.two-col {
+      grid-template-columns: 520px 1fr;
+      align-items: start;
+    }
+    .left-col { display: flex; flex-direction: column; gap: 18px; }
+
+    .plant-img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #eee;
+    }
+
+    .panel {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      border: 0px solid #e5e7eb;
+    }
+    h3 { margin: 0 0 10px; color: #2b4c66; }
+    .small { font-size: 14px; color: #4b5563; }
+
+    .title-row { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .title { font-size: 42px; letter-spacing: 1px; color: #70b85b; margin: 4px 0 0; }
+    .badge { color: #f39c12; font-weight: 600; margin-top: 10px; }
+    .desc { margin-top: 10px; line-height: 1.6; }
+
+    .cta-row { display: flex; gap: 16px; margin-top: 150px; }
+    .btn {
+      padding: 12px 22px;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+    .btn-primary { background: #5aa6ff; color: #fff; }
+    .btn-secondary { background: #e9eef7; color: #1f2937; }
+
+    /* ===== Modals ===== */
+    .modal {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.45); z-index: 1000; padding: 20px;
+    }
+    .modal.open { display: flex; }
+    .dialog {
+      width: min(520px, 92vw);
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.22);
+      overflow: hidden;
+    }
+    .dialog-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; border-bottom: 1px solid #eee;
+    }
+    .dialog-tt { margin: 0; font-size: 20px; }
+    .x { border: 0; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
+    .dialog-bd { padding: 18px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 14px; margin-bottom: 6px; }
+    .form-group input {
+      width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+    }
+    .message {
+      margin-top: 10px; padding: 10px 12px;
+      background: #fff8e5; border: 1px solid #f0d98c; border-radius: 8px;
+    }
+    .auth-link { text-align: center; margin-top: 10px; font-size: 14px; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 960px) {
+      .hero-grid.two-col { grid-template-columns: 1fr; }
+      .title { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+
+  {% include 'header.html' %}
+
+  <main>
+    <!-- ===== Hero: Left (image + quick start), Right (title + copy + CTAs) ===== -->
+    <section class="hero">
+      <div class="hero-grid two-col">
+        <!-- LEFT STACK -->
+        <div class="left-col">
+          <img
+            class="plant-img"
+            src="{{ url_for('static', filename='images/Sawmill_UnloadingTruck.jpeg') }}"
+            alt="Truck unloading logs at a sawmill" />
+
+          <div class="panel" aria-labelledby="qsg-title">
+            <h3 id="qsg-title">Quick Start Guide</h3>
+            <ol class="small" style="margin: 0 0 0 18px;">
+              <li>Read the About page to understand the simulation</li>
+              <li>Register your account</li>
+              <li>Log in to access the simulation</li>
+              <li>Enter inputs as guided</li>
+              <li>Run the simulation</li>
+              <li>View results and download reports</li>
+              <li>Save the result to the dashboard to see the result later in the dashboard</li>
+              <li>Contact us for issues or feedback</li>
+            </ol>
+          </div>
+          <!-- <div id="video" class="panel">
+            <h3>Watch Demo</h3>
+            <video 
+              controls 
+              style="width: 100%; max-height: 300px; border-radius: 8px;">
+              <source src="{{ url_for('static', filename='videos/web_tutorial.mp4') }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div> -->
+
+        </div>
+
+        <!-- RIGHT CONTENT -->
+        <div>
+          <div class="title-row">
+            <h1 class="title">TimberSim</h1>
+            <div class="badge">Timber transportation simulation</div>
+          </div>
+
+          <p class="desc small">
+            TimberSim models Mississippi’s timber distribution network using discrete-event simulation to
+            optimize truck routing, crane scheduling, and resource utilization. It evaluates breakdown
+            impacts, queues, travel times, and rerouting policies to cut delays and boost throughput.
+            The project is funded by USDA.
+          </p>
+
+          <div class="cta-row">
+            <button id="openRegister" class="btn btn-primary" type="button">Register</button>
+            <button id="openLogin" class="btn btn-secondary" type="button">Login</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  {% include 'footer.html' %}
+
+  <script>
+    // Modal controller
+    const $ = (s)=>document.querySelector(s);
+    const open  = (id)=>{const m=$("#"+id); m.classList.add("open"); m.setAttribute("aria-hidden","false"); m.querySelector("input,button")?.focus();}
+    const close = (id)=>{const m=$("#"+id); m.classList.remove("open"); m.setAttribute("aria-hidden","true");}
+
+    $("#openLogin")?.addEventListener("click",()=>open("loginModal"));
+    $("#openRegister")?.addEventListener("click",()=>open("registerModal"));
+
+    document.addEventListener("click",(e)=>{
+      if(e.target.matches(".modal")) close(e.target.id);       // click backdrop
+      if(e.target.matches(".x")) close(e.target.dataset.close); // click X
+      if(e.target.matches("[data-switch]")){
+        e.preventDefault();
+        document.querySelectorAll(".modal.open").forEach(m=>m.classList.remove("open"));
+        open(e.target.getAttribute("data-switch"));
+      }
+    });
+
+    document.addEventListener("keydown",(e)=>{
+      if(e.key==="Escape") document.querySelectorAll(".modal.open").forEach(m=>m.classList.remove("open"));
+    });
+
+    // Deep-link modal open: ?auth=login or ?auth=register
+    const p=new URLSearchParams(location.search);
+    if(p.get("auth")==="login") open("loginModal");
+    if(p.get("auth")==="register") open("registerModal");
+  </script>
+
+  <!-- ===== LOGIN MODAL ===== -->
+  <div id="loginModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="loginTitle">
+    <div class="dialog">
+      <div class="dialog-hd">
+        <h2 id="loginTitle" class="dialog-tt">Login</h2>
+        <button class="x" data-close="loginModal" aria-label="Close">&times;</button>
+      </div>
+      <div class="dialog-bd">
+        <form method="post" action="{{ url_for('login') }}">
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%">Login</button>
+        </form>
+
+        {% with messages = get_flashed_messages(category_filter=['login']) %}
+          {% if messages %}
+            {% for msg in messages %}
+              <div class="message" role="alert">
+                {{ msg }}
+              </div>
+            {% endfor %}
+            <script>
+              // Force login modal to reopen if there are login flash messages
+              document.addEventListener("DOMContentLoaded", function() {
+                open("loginModal");
+              });
+            </script>
+          {% endif %}
+        {% endwith %}
+
+
+
+        <div class="auth-link">
+          <span>Don't have an account?
+            <a href="#" data-switch="registerModal">Register here</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REGISTER MODAL ===== -->
+  <div id="registerModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="registerTitle">
+    <div class="dialog">
+      <div class="dialog-hd">
+        <h2 id="registerTitle" class="dialog-tt">Create account</h2>
+        <button class="x" data-close="registerModal" aria-label="Close">&times;</button>
+      </div>
+      <div class="dialog-bd">
+        <form method="post" action="{{ url_for('register') }}">
+          <div class="form-group">
+            <label for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" name="password" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-confirm">Confirm Password</label>
+            <input type="password" id="reg-confirm" name="confirm_password" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%">Register</button>
+        </form>
+
+        {% with messages = get_flashed_messages(category_filter=['register']) %}
+          {% if messages %}
+            <div class="message">{{ messages[0] }}</div>
+            <script>
+              // Force register modal to reopen if there are register flash messages
+              document.addEventListener("DOMContentLoaded", function() {
+                open("registerModal");
+              });
+            </script>
+          {% endif %}
+        {% endwith %}
+
+
+        <div class="auth-link">
+          <span>Already have an account?
+            <a href="#" data-switch="loginModal">Log in</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

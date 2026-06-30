@@ -1,0 +1,98 @@
+{# templates/footer.html #}
+<footer class="ts-footer" role="contentinfo">
+  <style>
+    .ts-footer {
+      --fg:#0b6b49;
+      --fg2:#1f6b5a;
+      --bg1:#e8f1ea;
+      --bg2:#dff0e4;
+      --line:#cfe3d4;
+
+      font-family: Segoe UI, system-ui, -apple-system, sans-serif;
+      color: var(--fg);
+      background:
+        radial-gradient(1400px 240px at 20% -40%, var(--bg2), transparent 60%),
+        radial-gradient(900px 220px at 90% -60%, var(--bg1), transparent 70%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      border-top: 1px solid var(--line);
+
+      /* instead of fixed */
+      position: relative;  
+      margin-top: auto;   /* push footer to bottom if page short */
+
+      z-index: 1000;
+      box-shadow: 0 -6px 18px rgba(0,0,0,.06);
+}
+
+    .ts-footer::before{
+      content:"";
+      position:absolute; inset:0 auto auto 0; height:10px; width:100%;
+      background:
+        radial-gradient(12px 10px at 6px 10px, var(--bg2) 40%, transparent 41%) repeat-x;
+      opacity:.6;
+    }
+    .ts-footer-inner{
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 18px clamp(16px, 4vw, 22px);
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      text-align: center;
+    }
+    .ts-line{
+      display:flex; flex-wrap:wrap; gap:8px; align-items: center; justify-content: center;
+      font-size: 15px; line-height:1.5;
+    }
+    .ts-kicker{
+      display:inline-flex; align-items:center; gap:8px;
+      font-weight: 800; letter-spacing:.3px;
+      text-transform: uppercase; font-size: 12px;
+      color: var(--fg2);
+      background: #ffffffb8;
+      border: 1px solid var(--line);
+      padding: 6px 10px; border-radius: 999px;
+    }
+    .ts-dot{ opacity:.4; }
+    .ts-meta{
+      font-size: 13px; color:#2f4f43;
+      display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+    }
+    .chip{
+      border:1px solid var(--line); border-radius:999px; padding:6px 10px;
+      background:#ffffffa6; backdrop-filter: blur(2px);
+    }
+    .ts-footer a{
+      color: #0e7a57; text-decoration: none; border-bottom: 1px dashed #0e7a5744;
+    }
+    .ts-footer a:hover{ border-bottom-color:#0e7a57aa; }
+    .ts-emoji{ font-size: 16px; }
+  </style>
+
+  <div class="ts-footer-inner">
+    <div class="ts-line">
+      <span class="ts-kicker">
+        <span class="ts-emoji" aria-hidden="true">🌲</span>
+        TimberSim
+      </span>
+      <span class="ts-dot">•</span>
+      <span>Funded by the
+        <a href="https://www.usda.gov" target="_blank" rel="noopener">U.S. Department of Agriculture (USDA)</a>
+      </span>
+      <span class="ts-dot">•</span>
+      <span>Designed & built at the
+        <a href="https://www.usm.edu" target="_blank" rel="noopener">University of Southern Mississippi</a>
+      </span>
+      <span class="ts-emoji" aria-hidden="true">🤝</span>
+    </div>
+
+    <div class="ts-meta">
+      <span class="chip">Forestry</span>
+      <span class="chip">Logistics</span>
+      <span class="chip">Simulation</span>
+      <span class="chip">Decision Support</span>
+    </div>
+  </div>
+
+
+</footer>

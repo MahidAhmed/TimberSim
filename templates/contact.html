@@ -1,0 +1,133 @@
+{% set page_title = "Contact" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TimberSim — Contact</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* ===== Page base (consistent with home/about) ===== */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Segoe UI, system-ui, -apple-system, sans-serif;
+      background: #f5f7f9;
+      color: #333;
+
+      /* make footer stick to bottom */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ===== Hero ===== */
+    .hero { padding: 28px 22px; background: #fff; border-bottom: 1px solid #e5e7eb; }
+    .hero-inner { max-width: 1080px; margin: 0 auto; display: grid; gap: 8px; }
+    .hero-title { font-size: 38px; color: #2b4c66; margin: 0; }
+    .hero-sub { color: #4b5563; margin: 0; }
+
+    /* ===== Content ===== */
+    .content {
+      max-width: 1080px;
+      margin: 24px auto 48px;
+      padding: 0 22px;
+
+      /* let content grow to push footer down */
+      flex: 1;
+      width: 100%;
+    }
+    .grid { display: grid; gap: 22px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+      padding: 18px; display: grid; grid-template-columns: 72px 1fr; gap: 16px;
+      align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,.04);
+    }
+    .avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      display: grid; place-items: center; font-weight: 700; font-size: 22px;
+      color: #0b6b49; background: linear-gradient(#e8f1ea,#dff0e4); border: 1px solid #cfe3d4;
+    }
+    .name { margin: 0 0 4px; font-size: 18px; color: #1f2937; }
+    .role { margin: 0 0 6px; font-size: 14px; color: #475569; line-height: 1.35; }
+    .email { margin: 0; font-size: 14px; color: #374151; word-break: break-word; }
+    .email a { font-weight: 600; }
+
+    .sec-hd { margin: 24px 0 8px; font-size: 16px; color: #0b6b49; font-weight: 700; }
+    /* in your page’s <style> or global CSS */
+    html, body { height: 100%; }
+    body { display: flex; min-height: 100vh; flex-direction: column; }
+    main { flex: 1; } /* your main content wrapper */
+
+
+
+  </style>
+</head>
+<body>
+
+  {% include 'header.html' %}
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <h1 class="hero-title">Contact</h1>
+      <p class="hero-sub">Questions about TimberSim or collaboration? Reach out to the team below.</p>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <main class="content">
+    <div class="sec-hd">Team</div>
+    <div class="grid">
+
+      <!-- Chao Meng -->
+      <article class="card">
+        <div class="avatar" aria-hidden="true">CM</div>
+        <div>
+          <h2 class="name">Dr. Chao Meng</h2>
+          <p class="role">Associate Professor, School of Marketing, University of Southern Mississippi</p>
+          <p class="email"><a href="mailto:chao.meng@usm.edu">chao.meng@usm.edu</a></p>
+        </div>
+      </article>
+
+      <!-- Ali K. Dogru -->
+      <article class="card">
+        <div class="avatar" aria-hidden="true">AD</div>
+        <div>
+          <h2 class="name">Dr. Ali K. Dogru</h2>
+          <p class="role">Associate Professor, School of Management, University of Southern Mississippi</p>
+          <p class="email"><a href="mailto:ali.dogru@usm.edu">ali.dogru@usm.edu</a></p>
+        </div>
+      </article>
+
+      <!-- Chaoyang Zhang -->
+      <article class="card">
+        <div class="avatar" aria-hidden="true">CZ</div>
+        <div>
+          <h2 class="name">Dr. Chaoyang Zhang</h2>
+          <p class="role">Professor, School of Computing Science and Computer Engineering, University of Southern Mississippi</p>
+          <p class="email"><a href="mailto:chaoyang.zhang@usm.edu">chaoyang.zhang@usm.edu</a></p>
+        </div>
+      </article>
+
+      <!-- Mahid Ahmed -->
+      <article class="card">
+        <div class="avatar" aria-hidden="true">MA</div>
+        <div>
+          <h2 class="name">Mahid Ahmed</h2>
+          <p class="role">PhD Student, School of Computing Science and Computer Engineering, University of Southern Mississippi</p>
+          <p class="email"><a href="mailto:mahid.ahmed@usm.edu">mahid.ahmed@usm.edu</a></p>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  {% include 'footer.html' %}
+
+</body>
+</html>

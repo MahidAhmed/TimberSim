@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>One Sawmill Simulation</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eaf4e2; color: #333; line-height: 1.6; }
+        .container { max-width: 1000px; margin: 30px auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        h2, h3, h4 { text-align: center; margin-bottom: 20px; color: #003366; }
+        .input-group { margin-bottom: 25px; }
+        .input-label { display: flex; align-items: center; margin-bottom: 8px; font-weight: 500; font-size: 16px; }
+        .generator-box { background-color: #f0f4f8; padding: 20px; border-radius: 8px; border: 1px solid #cce5ff; margin-bottom: 25px; }
+        .generator-box h4 { margin-top: 0; text-align: left; font-size: 18px; color: #004085; margin-bottom: 15px; border-bottom: 1px solid #d6d8db; padding-bottom: 10px; }
+        
+        /* Tooltip Styles */
+        .tooltip-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background-color: #003366; color: white; border-radius: 50%; font-size: 14px; margin-left: 8px; cursor: help; position: relative; }
+        .tooltip-text { position: absolute; background-color: #003366; color: white; padding: 12px; border-radius: 6px; font-size: 14px; width: 300px; z-index: 100; bottom: 30px; left: 50%; transform: translateX(-50%); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-weight: normal; line-height: 1.4; }
+        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #003366 transparent transparent transparent; }
+        .tooltip-icon:hover .tooltip-text { opacity: 1; visibility: visible; }
+        
+        input[type="text"], input[type="number"], select { padding: 12px 15px; font-size: 15px; border-radius: 6px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; background-color: #f9f9f9; transition: border-color 0.3s; }
+        input:focus, select:focus { border-color: #003366; outline: none; box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2); }
+        input[readonly] { background-color: #e9ecef; color: #495057; cursor: not-allowed; }
+        .action-btn { padding: 14px; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 6px; cursor: pointer; transition: background 0.3s ease; width: 100%; margin-top: 10px; display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
+        .btn-run { background-color: #d00000; }
+        .btn-run:hover { background-color: #b30000; }
+        .btn-generate { background-color: #003366; }
+        .btn-generate:hover { background-color: #002244; }
+        .btn-info { background-color: #f77f00; margin-bottom: 20px; }
+        .btn-info:hover { background-color: #e06d00; }
+        .map-container { flex: 1.5; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+        .map-render-area { height: 900px; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+
+{% include 'header.html' %}
+
+<div class="container">
+    <h2>Single Sawmill Simulation</h2>
+    
+    {% if not selected_sawmill %}
+    <h4>Select a Sawmill from the Map Below</h4>
+    <p style="text-align: center;">Click a marker on the map, then click the link in its popup to load its data into the form.</p>
+    <div class="map-container">
+        <div class="map-render-area">
+            {{ map_html | safe }}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if selected_sawmill %}
+    <h3>Parameters for: {{ selected_sawmill['sawmill_name'] }}</h3>
+    <input type="hidden" id="global_sawmill_id" value="{{ selected_sawmill['sawmill_id'] }}">
+
+    {% set show_simulation = request.args.get('show_form') == 'true' %}
+
+    <div class="generator-box" id="generator-section" {% if show_simulation %}style="display: none;"{% endif %}>
+        <h4>Logging Site Generator</h4>
+        
+        <div class="input-group">
+            <div class="input-label">
+                Number of Logging Sites
+                <div class="tooltip-icon">?<div class="tooltip-text">The total number of logging sites to dynamically generate around this sawmill.</div></div>
+            </div>
+            <input type="number" id="gen_num" min="1" max="200" value="10" placeholder="e.g. 10">
+        </div>
+
+        <div class="input-group">
+            <div class="input-label">
+                Softwood Ratio (%)
+                <div class="tooltip-icon">?<div class="tooltip-text">The percentage of total timber capacity at these logging sites that will be classified as Softwood. The remainder will be Hardwood. This ratio will only work for mixed sawmill type which also generate mixed logging site</div></div>
+            </div>
+            <input type="number" id="gen_ratio" min="0" max="100" value="{{ default_softwood_ratio }}" placeholder="0-100">
+        </div>
+
+        <div class="input-group">
+            <div class="input-label">
+                Max Real Travel Time
+                <div class="tooltip-icon">?<div class="tooltip-text">The maximum allowed real road distance (or driving time) from the generated logging site to the sawmill.</div></div>
+            </div>
+            <input type="number" id="gen_time" min="1" max="300" value="90" placeholder="e.g. 90">
+        </div>
+
+        <button type="button" class="action-btn btn-generate" onclick="generateSitesOnly()">Generate Sites</button>
+    </div>
+
+    <div id="simulation-form-section" {% if not show_simulation %}style="display: none;"{% endif %}>
+        <form action="{{ url_for('one_sawmill') }}" method="post" class="show-running-modal">
+            <input type="hidden" name="sawmill" value="{{ selected_sawmill['sawmill_id'] }}">
+            <input type="hidden" name="ls_source" value="generated">
+            
+            <input type="hidden" name="num_generated_sites" id="form_gen_num" value="10">
+            <input type="hidden" name="softwood_ratio" id="form_gen_ratio" value="{{ default_softwood_ratio }}">
+            <input type="hidden" name="max_travel_time" id="form_gen_time" value="90">
+
+            <div class="input-group">
+                <div class="input-label">
+                    Sawmill Type
+                    <div class="tooltip-icon">?<div class="tooltip-text">The primary species type accepted by this sawmill (e.g., Softwood, Hardwood, or Mixed). This value is locked based on the database.</div></div>
+                </div>
+                <input type="text" readonly value="{{ selected_sawmill.get('species', 'Mixed') | capitalize }}">
+            </div>
+
+            <div class="input-group">
+                <div class="input-label">
+                    Unloading Mean Time (min)
+                    <div class="tooltip-icon">?<div class="tooltip-text">The average time it takes for a crane to completely unload a single truck.</div></div>
+                </div>
+                <input type="number" name="unload_mean_time" step="0.1" required value="{{ selected_sawmill['unload_time_mean'] }}">
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">
+                    Scale In Time (min)
+                    <div class="tooltip-icon">?<div class="tooltip-text">The time it takes for a loaded truck to be weighed upon entering the facility.</div></div>
+                </div>
+                <input type="number" name="scale_in_time" step="0.1" required value="{{ selected_sawmill['scale_in_time'] }}">
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">
+                    Scale Out Time (min)
+                    <div class="tooltip-icon">?<div class="tooltip-text">The time it takes for an empty truck to be weighed before exiting the facility.</div></div>
+                </div>
+                <input type="number" name="scale_out_time" step="0.1" required value="{{ selected_sawmill['scale_out_time'] }}">
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">
+                    Truck Waiting Area Capacity
+                    <div class="tooltip-icon">?<div class="tooltip-text">The maximum number of trucks that can physically fit inside the sawmill's waiting yard at one time.</div></div>
+                </div>
+                <input type="number" name="truck_waiting_area" required value="{{ selected_sawmill['truck_area_capacity'] }}">
+            </div>
+
+            <div class="input-group">
+                <div class="input-label">
+                    Crane capacity
+                    <div class="tooltip-icon">?<div class="tooltip-text">Simulate equipment failure scenarios. 'None' means normal operations. 'One Crane' simulates 50% capacity. 'Two Crane' simulates a total facility outage (0% capacity).</div></div>
+                </div>
+                <select name="breakdown_type" required>
+                    <option value="none" selected>100% Capacity</option>
+                    <option value="one_crane">50% Capacity</option>
+                    <option value="two_crane">0% Capacity</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <div class="input-label">
+                    Days gap between breakdowns
+                    <div class="tooltip-icon">?<div class="tooltip-text">If a breakdown scenario is selected, this sets the frequency (in days) between breakdown events.</div></div>
+                </div>
+                <input type="number" name="breakdown_gap" step="1" required value="1">
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">
+                    Simulation days
+                    <div class="tooltip-icon">?<div class="tooltip-text">The total timeframe the simulation model will run for. Longer durations provide more data but take slightly longer to compute.</div></div>
+                </div>
+                <select name="simulation_days" required>
+                    <option type="number" value="1" selected>1 day</option>
+                    <option type="number" value="7">1 Week</option>
+                    <option type="number" value="30">1 Month</option>
+                </select>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #ccc; margin: 30px 0;">
+
+            <a href="{{ url_for('ls_info', sawmill_id=selected_sawmill['sawmill_id']) }}" class="action-btn btn-info">Logging Sites Info</a>
+            <button type="submit" class="action-btn btn-run">Run Simulation</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function syncInputs() {
+        document.getElementById('form_gen_num').value = document.getElementById('gen_num').value;
+        document.getElementById('form_gen_time').value = document.getElementById('gen_time').value;
+        document.getElementById('form_gen_ratio').value = document.getElementById('gen_ratio').value;
+    }
+
+    if(document.getElementById('gen_num')) {
+        document.getElementById('gen_num').addEventListener('input', syncInputs);
+        document.getElementById('gen_time').addEventListener('input', syncInputs);
+        document.getElementById('gen_ratio').addEventListener('input', syncInputs);
+    }
+
+    document.querySelectorAll('.tooltip-icon').forEach(icon => {
+        icon.addEventListener('mouseenter', function() { this.querySelector('.tooltip-text').style.opacity = "1"; this.querySelector('.tooltip-text').style.visibility = "visible"; });
+        icon.addEventListener('mouseleave', function() { this.querySelector('.tooltip-text').style.opacity = "0"; this.querySelector('.tooltip-text').style.visibility = "hidden"; });
+    });
+
+    function generateSitesOnly() {
+        const sawmillId = document.getElementById('global_sawmill_id').value;
+        const num = document.getElementById('gen_num').value;
+        const time = document.getElementById('gen_time').value;
+        const ratio = document.getElementById('gen_ratio').value;
+        
+        const formData = new FormData();
+        formData.append('sawmill_id', sawmillId);
+        formData.append('num_generated_sites', num);
+        formData.append('max_travel_time', time);
+        formData.append('softwood_ratio', ratio);
+        
+        const btn = document.querySelector('.btn-generate');
+        const originalText = btn.innerText;
+        btn.innerText = "Generating...";
+        btn.disabled = true;
+
+        fetch('/generate_sites', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert(data.message); 
+                document.getElementById('generator-section').style.display = 'none';
+                document.getElementById('simulation-form-section').style.display = 'block';
+                syncInputs();
+            } else {
+                alert("Error: " + (data.error || "Unknown error"));
+            }
+        })
+        .catch(err => alert("Server error: " + err))
+        .finally(() => { btn.innerText = originalText; btn.disabled = false; });
+    }
+</script>
+
+</body>
+</html>
